@@ -48,6 +48,5 @@ Note: You will need a free tawk.to account to generate the embed code, create on
 * Choose desired widget and it will be inserted in your site
 
 == Frequently Asked Questions ==
-
 [FAQ](http://tawk.uservoice.com/knowledgebase)
 
