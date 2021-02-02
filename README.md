@@ -2,7 +2,7 @@
 
 Free live chat widget for your site
 
-This module is for Opencart 2.3.x
+This module is for Opencart 3.x.x
 
 ## Description
 
@@ -17,7 +17,7 @@ This section describes how to install the plugin and get it working.
 
 #### Extension Installer
 1. Download the plugin ending in `.ocmod.zip` from the OpenCart Marketplace.
-2. Go to Extensions -> Extension Installer and upload the zip file.
+2. Go to Extensions -> Installer and upload the zip file.
 
 #### Manual Installation
 1. Download the plugin ending in `.zip` from the OpenCart Marketplace.
@@ -26,11 +26,11 @@ This section describes how to install the plugin and get it working.
 > If you aren’t using the English language for the OpenCart admin area, copy the language file into the correct language folder. If you are not using the default OpenCart theme, be sure to paste tawkto.tpl in the correct theme folder.
 
 * admin/controller/extension/module/tawkto.php -> `<opencart_folder>`/admin/controller/extension/module/
-* admin/language/english/extension/module/tawkto.php -> `<opencart_folder>`/admin/language/`<your_language>`/extension/module/
+* admin/language/en-gb/extension/module/tawkto.php -> `<opencart_folder>`/admin/language/`<your_language>`/extension/module/
 * admin/view/image/tawkto/ -> `<opencart_folder>`/admin/view/image/
-* admin/view/template/extension/module/tawkto.tpl -> `<opencart_folder>`/admin/view/template/extension/module/
+* admin/view/template/extension/module/tawkto.twig -> `<opencart_folder>`/admin/view/template/extension/module/
 * catalog/controller/extension/module/tawkto.php -> `<opencart_folder>`/catalog/controller/extension/module/tawkto.php
-* catalog/view/theme/default/template/extension/module/tawkto.tpl -> `<opencart_folder>`/catalog/view/theme/`<your_theme>`/template/extension/module/tawkto.tpl
+* catalog/view/theme/default/template/extension/module/tawkto.twig -> `<opencart_folder>`/catalog/view/theme/`<your_theme>`/template/extension/module/tawkto.twig
 
 ### Widget Configuration
 1. Go to the Modules section in the Extensions and install the tawk.to plugin there.
@@ -43,6 +43,9 @@ This section describes how to install the plugin and get it working.
 Visit our [Help Center](https://help.tawk.to/) for answers to FAQs
 
 ## Changelog
+
+### 2.0.0
+* Updated module for Opencart 3 compatibility support.
 
 ### 1.3.0
 * Added monitoring of cart item option to tawk.to module config page.

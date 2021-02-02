@@ -24,9 +24,13 @@ class ControllerExtensionModuleTawkto extends Controller {
     }
 
     public function index() {
+
         $this->setup();
+        $this->document->setTitle($this->language->get('heading_title'));
+        $this->load->model('setting/module');
 
         $data = $this->setupIndexTexts();
+        $data['module_tawkto_status'] = $this->config->get('module_tawkto_status');
 
         // get current store and load tawk.to options
         $store_id = 0;
@@ -43,9 +47,9 @@ class ControllerExtensionModuleTawkto extends Controller {
         $data['iframe_url'] = $this->getIframeUrl();
         $data['hierarchy']  = $this->getStoreHierarchy();
         $data['url'] = array(
-                'set_widget_url' => $this->url->link('extension/module/tawkto/setwidget', '', 'SSL') . '&token=' . $this->session->data['token'],
-                'remove_widget_url' => $this->url->link('extension/module/tawkto/removewidget', '', 'SSL') . '&token=' . $this->session->data['token'],
-                'set_options_url' => $this->url->link('extension/module/tawkto/setoptions', '', 'SSL') . '&token=' . $this->session->data['token']
+                'set_widget_url' => $this->url->link('extension/module/tawkto/setwidget', '', 'SSL') . '&user_token=' . $this->session->data['user_token'],
+                'remove_widget_url' => $this->url->link('extension/module/tawkto/removewidget', '', 'SSL') . '&user_token=' . $this->session->data['user_token'],
+                'set_options_url' => $this->url->link('extension/module/tawkto/setoptions', '', 'SSL') . '&user_token=' . $this->session->data['user_token']
             );
 
         $data['widget_config']  = $this->getConfig($store_id);
@@ -55,14 +59,18 @@ class ControllerExtensionModuleTawkto extends Controller {
         }
 
         $data['display_opts']  = $this->getDisplayOpts($store_id);
+        $data['show_whitelist']  = (!empty($data['display_opts']['show_oncustom']))?json_decode($data['display_opts']['show_oncustom']):array();
+        $data['hide_whitelist']  = (!empty($data['display_opts']['hide_oncustom']))?json_decode($data['display_opts']['hide_oncustom']):array();
+
         $data['store_id']  = $store_id;
         $data['store_layout_id']  = $store_id; // set default to 0
 
-        $data['header']      = $this->load->controller('common/header');
-        $data['footer']      = $this->load->controller('common/footer');
+        $data['header'] = $this->load->controller('common/header');
         $data['column_left'] = $this->load->controller('common/column_left');
+        $data['footer'] = $this->load->controller('common/footer');
+        $data['user_token'] = $this->session->data['user_token'];
 
-        $this->response->setOutput($this->load->view('extension/module/tawkto.tpl', $data));
+        $this->response->setOutput($this->load->view('extension/module/tawkto', $data));
     }
 
     public function getConfig($store_id = 0)
@@ -72,9 +80,9 @@ class ControllerExtensionModuleTawkto extends Controller {
                 'widget_id' => null
             );
 
-        $current_settings = $this->model_setting_setting->getSetting('tawkto', $store_id);
-        if (isset($current_settings['tawkto_widget']['widget_config_'.$store_id])) {
-            $config = $current_settings['tawkto_widget']['widget_config_'.$store_id];
+        $current_settings = $this->model_setting_setting->getSetting('module_tawkto', $store_id);
+        if (isset($current_settings['module_tawkto_widget']['widget_config_'.$store_id])) {
+            $config = $current_settings['module_tawkto_widget']['widget_config_'.$store_id];
         }
 
         return $config;
@@ -82,7 +90,7 @@ class ControllerExtensionModuleTawkto extends Controller {
 
     public function getDisplayOpts($store_id = 0)
     {
-        $current_settings = $this->model_setting_setting->getSetting('tawkto', $store_id);
+        $current_settings = $this->model_setting_setting->getSetting('module_tawkto', $store_id);
 
         $options = array(
                 'always_display' => true,
@@ -90,15 +98,11 @@ class ControllerExtensionModuleTawkto extends Controller {
                 'show_onfrontpage' => false,
                 'show_oncategory' => false,
                 'show_oncustom' => array(),
-                'monitor_customer_cart' => false,
+                'monitor_customer_cart' => false
             );
-        if (isset($current_settings['tawkto_visibility'])) {
-            $options = $current_settings['tawkto_visibility'];
+        if (isset($current_settings['module_tawkto_visibility'])) {
+            $options = $current_settings['module_tawkto_visibility'];
             $options = json_decode($options,true);
-
-            if (!isset($options['monitor_customer_cart']) || is_null($options['monitor_customer_cart'])) {
-                $options['monitor_customer_cart'] = false;
-            }
         }
 
         return $options;
@@ -111,9 +115,17 @@ class ControllerExtensionModuleTawkto extends Controller {
      * @return Boolean
      */
     private function validatePost() {
-        return !empty($_POST['pageId']) && !empty($_POST['widgetId']) && isset($_POST['store'])
-            && preg_match('/^[0-9A-Fa-f]{24}$/', $_POST['pageId']) === 1
-            && preg_match('/^[a-z0-9]{1,50}$/i', $_POST['widgetId']) === 1;
+        if (!isset($_POST['pageId']) || !isset($_POST['widgetId']) || !isset($_POST['store'])) {
+            return false;
+        }
+
+        $page_id = $this->db->escape($_POST['pageId']);
+        $widget_id = $this->db->escape($_POST['widgetId']);
+        $store = isset($_POST['store'])?intval($_POST['store']):null;
+
+        return (!empty($page_id) && !empty($widget_id) && !is_null($store))
+            && preg_match('/^[0-9A-Fa-f]{24}$/', $page_id) === 1
+            && preg_match('/^[a-z0-9]{1,50}$/i', $widget_id) === 1;
     }
 
     public function setoptions() {
@@ -130,7 +142,7 @@ class ControllerExtensionModuleTawkto extends Controller {
             );
 
         if (isset($_REQUEST['options']) && !empty($_REQUEST['options'])) {
-            // $_REQUEST['options'] = urldecode($_REQUEST['options']);
+
             $options = explode('&', $_REQUEST['options']);
 
             foreach ($options as $post) {
@@ -141,7 +153,7 @@ class ControllerExtensionModuleTawkto extends Controller {
                     case 'show_oncustom':
                         // replace newlines and returns with comma, and convert to array for saving
                         $value = urldecode($value);
-                        $value = str_ireplace(["\r\n", "\r", "\n"], ',', $value);
+                        $value = str_ireplace(array("\r\n", "\r", "\n"), ',', $value);
                         $value = explode(",", $value);
                         $value = (empty($value)||!$value)?array():$value;
                         $jsonOpts[$column] = json_encode($value);
@@ -159,10 +171,16 @@ class ControllerExtensionModuleTawkto extends Controller {
         }
 
         $this->setup();
-        $store_id = intval($_POST['store']);
-        $current_settings = $this->model_setting_setting->getSetting('tawkto', $store_id);
-        $current_settings['tawkto_visibility'] = json_encode($jsonOpts);
-        $this->model_setting_setting->editSetting('tawkto', $current_settings, $store_id);
+
+        $store_id = isset($_POST['store'])?intval($_POST['store']):null;
+        if (is_null($store_id)) {
+            echo json_encode(array('success' => false));
+            die();
+        }
+
+        $current_settings = $this->model_setting_setting->getSetting('module_tawkto', $store_id);
+        $current_settings['module_tawkto_visibility'] = json_encode($jsonOpts);
+        $this->model_setting_setting->editSetting('module_tawkto', $current_settings, $store_id);
 
         echo json_encode(array('success' => true));
         die();
@@ -171,44 +189,62 @@ class ControllerExtensionModuleTawkto extends Controller {
     public function setwidget() {
         header('Content-Type: application/json');
 
-        if(!$this->validatePost() || !$this->validate()) {
-            echo json_encode(array('success' => FALSE));
+        if (!$this->validatePost() || !$this->checkPermission()) {
+            echo json_encode(array('success' => false));
             die();
         }
 
         $this->setup();
 
-        $currentSettings = $this->model_setting_setting->getSetting('tawkto', $_POST['store']);
-        $currentSettings['tawkto_widget'] = isset($currentSettings['tawkto_widget']) ? $currentSettings['tawkto_widget'] : array();
+        $fail = false;
 
-        $currentSettings['tawkto_widget']['widget_config_'.$_POST['id']] = array(
-            'page_id' => $_POST['pageId'],
-            'widget_id' => $_POST['widgetId'],
-            'user_id' => $this->session->data['user_id']
-        );
+        $id = isset($_POST['id'])?intval($_POST['id']):null;
+        if (is_null($id)) {
+            $fail = true;
+        }
 
-        $this->model_setting_setting->editSetting('tawkto', $currentSettings, $_POST['store']);
+        if (!isset($_POST['pageId']) || !isset($_POST['widgetId'])) {
+            $fail = true;
+        }
+        $page_id = $this->db->escape($_POST['pageId']);
+        $widget_id = $this->db->escape($_POST['widgetId']);
 
-        echo json_encode(array('success' => TRUE));
+        if ($fail) {
+            echo json_encode(array('success' => false));
+            die();
+        }
+
+        $currentSettings = $this->model_setting_setting->getSetting('module_tawkto', $_POST['store']);
+        $currentSettings['module_tawkto_widget'] = isset($currentSettings['module_tawkto_widget']) ? $currentSettings['module_tawkto_widget'] : array();
+        $currentSettings['module_tawkto_widget']['widget_config_'.$id] = array(
+                'page_id' => $page_id,
+                'widget_id' => $widget_id,
+                'user_id' => $this->session->data['user_id']
+            );
+
+        $this->model_setting_setting->editSetting('module_tawkto', $currentSettings, $_POST['store']);
+
+        echo json_encode(array('success' => true));
         die();
     }
 
     public function removewidget() {
         header('Content-Type: application/json');
 
-        if(!isset($_POST['id']) || !$this->validate()) {
-            echo json_encode(array('success' => FALSE));
+        $id = isset($_POST['id'])?intval($_POST['id']):null;
+        if (is_null($id) || !$this->checkPermission()) {
+            echo json_encode(array('success' => false));
             die();
         }
 
         $this->setup();
 
-        $currentSettings = $this->model_setting_setting->getSetting('tawkto');
-        unset($currentSettings['tawkto_widget']['widget_config_'.$_POST['id']]);
+        $currentSettings = $this->model_setting_setting->getSetting('module_tawkto');
+        unset($currentSettings['module_tawkto_widget']['widget_config_'.$id]);
 
-        $this->model_setting_setting->editSetting('tawkto', $currentSettings, $_POST['id']);
+        $this->model_setting_setting->editSetting('module_tawkto', $currentSettings, $_POST['id']);
 
-        echo json_encode(array('success' => TRUE));
+        echo json_encode(array('success' => true));
         die();
     }
 
@@ -216,26 +252,25 @@ class ControllerExtensionModuleTawkto extends Controller {
         $this->document->setTitle($this->language->get('heading_title'));
 
         $data['breadcrumbs'] = array();
+        $data['breadcrumbs'][] = array(
+                'text' => $this->language->get('text_home'),
+                'href' => $this->url->link('common/home', 'token=' . $this->session->data['user_token'], 'SSL'),
+                'separator' => false
+            );
 
         $data['breadcrumbs'][] = array(
-            'text'      => $this->language->get('text_home'),
-            'href'      => $this->url->link('common/home', 'token=' . $this->session->data['token'], 'SSL'),
-            'separator' => false
-        );
+                'text' => $this->language->get('text_extension'),
+                'href' => $this->url->link('marketplace/extension', 'token=' . $this->session->data['user_token'], 'SSL'),
+                'separator' => ' :: '
+            );
 
         $data['breadcrumbs'][] = array(
-            'text'      => $this->language->get('text_extension'),
-            'href'      => $this->url->link('extension/extension', 'token=' . $this->session->data['token'], 'SSL'),
-            'separator' => ' :: '
-        );
+                'text' => $this->language->get('heading_title'),
+                'href' => $this->url->link('extension/module/tawkto', 'token=' . $this->session->data['user_token'], 'SSL'),
+                'separator' => ' :: '
+            );
 
-        $data['breadcrumbs'][] = array(
-            'text'      => $this->language->get('heading_title'),
-            'href'      => $this->url->link('extension/module/tawkto', 'token=' . $this->session->data['token'], 'SSL'),
-            'separator' => ' :: '
-        );
-
-        $data['cancel'] = $this->url->link('extension/module', 'token=' . $this->session->data['token'], 'SSL');
+        $data['cancel'] = $this->url->link('extension/module', 'token=' . $this->session->data['user_token'], 'SSL');
 
         $data['heading_title'] = $this->language->get('heading_title');
         $data['button_cancel'] = $this->language->get('button_cancel');
@@ -250,27 +285,29 @@ class ControllerExtensionModuleTawkto extends Controller {
      * @return Array
      */
     private function getStoreHierarchy() {
-        $stores                = $this->model_setting_store->getStores();
-        $this->layouts         = $this->model_design_layout->getLayouts();
-        $this->languages       = $this->model_localisation_language->getLanguages();
+        $stores = $this->model_setting_store->getStores();
+        $this->layouts = $this->model_design_layout->getLayouts();
+        $this->languages = $this->model_localisation_language->getLanguages();
+
         $hierarchy = array();
 
-        // we need to remove childs as these prevent us from monitoring user
-        // and user's custom attributes as he/she navigates in store
+        // we need to empty childs as these prevent us from monitoring user
+        // and user's custom attributes as they navigate the store
+        // (incoming feature, e.g. setting diff. widget per template)
         $hierarchy[] = array(
-            'id'      => '0',
-            'name'    => 'Default store',
-            'current' => $this->getCurrentSettingsFor(0),
-            'childs'  => array()
-        );
+                'id'      => '0',
+                'name'    => 'Default store',
+                'current' => $this->getCurrentSettingsFor('0'),
+                'childs'  => array()
+            );
 
         foreach($stores as $store) {
             $hierarchy[] = array(
-                'id'      => $store['store_id'],
-                'name'    => $store['name'],
-                'current' => $this->getCurrentSettingsFor($store['store_id']),
-                'childs'  => array()
-            );
+                    'id'      => $store['store_id'],
+                    'name'    => $store['name'],
+                    'current' => $this->getCurrentSettingsFor($store['store_id']),
+                    'childs'  => array()
+                );
         }
 
         return $hierarchy;
@@ -289,11 +326,11 @@ class ControllerExtensionModuleTawkto extends Controller {
 
         foreach($this->languages as $code => $details) {
             $return[] = array(
-                'id'      => $parent . '_' . $details['language_id'],
-                'name'    => $details['name'],
-                'current' => $this->getCurrentSettingsFor($parent.'_'.$details['language_id']),
-                'childs'  => $this->getLayoutHierarchy($parent.'_'.$details['language_id'])
-            );
+                    'id' => $parent . '_' . $details['language_id'],
+                    'name' => $details['name'],
+                    'current' => $this->getCurrentSettingsFor($parent.'_'.$details['language_id']),
+                    'childs' => $this->getLayoutHierarchy($parent.'_'.$details['language_id'])
+                );
         }
 
         return $return;
@@ -311,9 +348,9 @@ class ControllerExtensionModuleTawkto extends Controller {
 
         foreach ($this->layouts as $layout) {
             $return[] = array(
-                'id'      => $parent . '_' . $layout['layout_id'],
-                'name'    => $layout['name'],
-                'childs'  => array(),
+                'id' => $parent . '_' . $layout['layout_id'],
+                'name' => $layout['name'],
+                'childs' => array(),
                 'current' => $this->getCurrentSettingsFor($parent.'_'.$layout['layout_id'])
             );
         }
@@ -325,14 +362,15 @@ class ControllerExtensionModuleTawkto extends Controller {
      * Will retrieve widget settings for supplied item in hierarchy
      * It can be store, store + language or store+language+layout
      *
-     * @param  Int   $id
+     * @param  Int $id
      * @return Array
      */
     private function getCurrentSettingsFor($id) {
-        $this->currentSettings = $this->model_setting_setting->getSetting('tawkto', $id);
 
-        if(isset($this->currentSettings['tawkto_widget']['widget_config_'.$id])) {
-            $settings = $this->currentSettings['tawkto_widget']['widget_config_'.$id];
+        $this->currentSettings = $this->model_setting_setting->getSetting('module_tawkto', $id);
+
+        if(isset($this->currentSettings['module_tawkto_widget']['widget_config_'.$id])) {
+            $settings = $this->currentSettings['module_tawkto_widget']['widget_config_'.$id];
 
             return array(
                 'pageId'   => $settings['page_id'],
@@ -344,7 +382,7 @@ class ControllerExtensionModuleTawkto extends Controller {
     }
 
     private function getIframeUrl() {
-        $settings = $this->model_setting_setting->getSetting('tawkto');
+        $settings = $this->model_setting_setting->getSetting('module_tawkto');
 
         return $this->getBaseUrl()
             .'/generic/widgets/'
@@ -358,34 +396,35 @@ class ControllerExtensionModuleTawkto extends Controller {
 
     public function install() {
         $this->setup();
-        $this->model_setting_setting->editSetting('tawkto', array("tawkto_status" => 1));
-
+        $this->model_setting_setting->editSetting('module_tawkto', array("module_tawkto_status" => 1));
         $this->enableAllLayouts();
     }
 
     public function uninstall() {
         $this->setup();
-
-        $this->model_setting_setting->deleteSetting('tawkto');
+        $this->model_setting_setting->deleteSetting('module_tawkto');
     }
 
     private function enableAllLayouts() {
         $layouts = $this->model_design_layout->getLayouts();
 
-        foreach ($layouts as $layout) { //will enable tawk.to module in every page/layout there is
+        //will enable tawk.to module in every page/layout there is
+        foreach ($layouts as $layout) {
+            $layout_id = $this->db->escape($layout['layout_id']);
+
             $this->db->query("INSERT INTO " . DB_PREFIX . "layout_module (layout_id, code, position, sort_order)
-                SELECT '" . $layout['layout_id'] . "', 'tawkto', 'content_bottom', '999' FROM dual
+                SELECT '" . $layout_id . "', 'tawkto', 'content_bottom', '999' FROM dual
                 WHERE NOT EXISTS (
                     SELECT layout_module_id
                     FROM " . DB_PREFIX . "layout_module
-                    WHERE layout_id = '" . $layout['layout_id'] . "' AND code = 'tawkto'
+                    WHERE layout_id = '" . $layout_id . "' AND code = 'tawkto'
                 )
                 LIMIT 1
             ");
         }
     }
 
-    protected function validate() {
+    protected function checkPermission() {
         if (!$this->user->hasPermission('modify', 'extension/module/tawkto')) {
             $this->error['warning'] = $this->language->get('error_permission');
         }

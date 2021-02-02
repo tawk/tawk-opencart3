@@ -1,22 +1,20 @@
-<?php
-/**
- * @package tawk.to Integration
- * @author tawk.to
- * @copyright (C) 2021 tawk.to
- * @license GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
- */
-?><!--Start of tawk.to Script-->
-<script type="text/javascript">
-var Tawk_API=Tawk_API||{}, Tawk_LoadStart=new Date();
-<?php if (!is_array($customer) && $customer->isLogged()) { ?>
-    Tawk_API.visitor = {
-        name  : "<?php echo $customer->getFirstName(), ' ' ,$customer->getLastName(); ?>",
-        email : "<?php echo $customer->getEmail(); ?>",
-    };
-<?php } ?>
+{#
+ @package tawk.to Integration
+ @author tawk.to
+ @copyright (C) 2021 tawk.to
+ @license GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
+#}
 
-Tawk_API.onLoad = function(){
-    <?php if ($can_monitor_customer_cart) : ?>
+<!--Start of tawk.to Script-->
+<script type="text/javascript">
+var Tawk_API=Tawk_API||{},Tawk_LoadStart=new Date();
+
+{% if logged_in %}
+Tawk_API.visitor = {{visitor}};
+{% endif %}
+
+Tawk_API.onLoad = function() {
+    {% if can_monitor_customer_cart %}
         jQuery(document).ajaxSuccess(function (e, xhr, settings) {
             if (!settings || settings.type !== 'POST') {
                 return;
@@ -82,12 +80,12 @@ Tawk_API.onLoad = function(){
                 }
             });
         });
-    <?php endif; ?>
+    {% endif %}
 };
 (function(){
 var s1=document.createElement("script"),s0=document.getElementsByTagName("script")[0];
 s1.async=true;
-s1.src='https://embed.tawk.to/<?php echo $page_id ?>/<?php echo $widget_id ?>';
+s1.src='https://embed.tawk.to/{{page_id}}/{{widget_id}}';
 s1.charset='UTF-8';
 s1.setAttribute('crossorigin','*');
 s0.parentNode.insertBefore(s1,s0);

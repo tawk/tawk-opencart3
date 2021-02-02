@@ -17,8 +17,8 @@ cp -r admin ./upload/
 cp -r catalog ./upload/
 
 echo "Creating opencart 3 zip files"
-zip -9 -rq tawk-oc2-$release_version.ocmod.zip upload README.md
-zip -9 -rq tawk-oc2-$release_version.zip admin catalog README.md
+zip -9 -rq tawk-oc3-$release_version.ocmod.zip upload README.md
+zip -9 -rq tawk-oc3-$release_version.zip admin catalog README.md
 
 echo "Cleaning up"
 rm -rf ./upload
