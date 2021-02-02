@@ -6,9 +6,9 @@ This module is for Opencart 3.x.x
 
 == Description ==
 
-tawk.to is a  free  live chat app that lets you monitor and  chat  with  visitors on your website  or from a free customizable page. No catch. No spam. No wares. It's truly free and always will be.
+tawk.to is a free live chat app that lets you monitor and  chat  with  visitors on your website  or from a free customizable page. No catch. No spam. No wares. It's truly free and always will be.
 
-No account ? Create one here : https://www.tawk.to/?utm_source=opencart&utm_medium=link&utm_campaign=signup
+No account? Create one here: https://www.tawk.to/?utm_source=opencart&utm_medium=link&utm_campaign=signup
 
 == Installation ==
 
