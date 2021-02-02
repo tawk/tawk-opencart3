@@ -32,6 +32,7 @@ Note: You will need a free tawk.to account to generate the embed code, create on
 
 
 == Changelog ==
+
 = 2.0.0 =
 * Updated module for Opencart 3 compatibility support.
 
