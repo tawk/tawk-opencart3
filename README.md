@@ -23,7 +23,7 @@ This section describes how to install the plugin and get it working.
 1. Download the plugin ending in `.zip` from the OpenCart Marketplace.
 2. Extract the zip file and copy the files into your OpenCart folder. Then copy the Admin and Catalog folders and paste them into the opencart folder.
 
-> If you aren’t using the English language for the OpenCart admin area, copy the language file into the correct language folder. If you are not using the default OpenCart theme, be sure to paste tawkto.tpl in the correct theme folder.
+> If you aren’t using the English language for the OpenCart admin area, copy the language file into the correct language folder. If you are not using the default OpenCart theme, be sure to paste tawkto.twig in the correct theme folder.
 
 * admin/controller/extension/module/tawkto.php -> `<opencart_folder>`/admin/controller/extension/module/
 * admin/language/en-gb/extension/module/tawkto.php -> `<opencart_folder>`/admin/language/`<your_language>`/extension/module/
