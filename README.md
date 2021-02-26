@@ -44,6 +44,9 @@ Visit our [Help Center](https://help.tawk.to/) for answers to FAQs
 
 ## Changelog
 
+### 2.0.1
+* Applied OpenCart 3 compatibility support for enable/disable option of visitor recognition feature.
+
 ### 2.0.0
 * Updated module for Opencart 3 compatibility support.
 
