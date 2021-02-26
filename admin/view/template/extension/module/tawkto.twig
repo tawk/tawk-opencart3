@@ -226,8 +226,9 @@
                             <span class="attrib_desc">Enable sending of customer details to tawk.to dashboard when the customer is logged in.</span>
                             </label>
                             <div class="col-lg-6 control-label ">
-                                <input type="checkbox" class="col-lg-6 " name="enable_visitor_recognition" id="enable_visitor_recognition" value="1"
-                                    <?php echo ($display_opts['enable_visitor_recognition'])?'checked':'';?>  />
+                                <input type="checkbox" class="col-lg-6 " name="enable_visitor_recognition"
+                                    id="enable_visitor_recognition" value="1"
+                                    {{(display_opts.enable_visitor_recognition)?'checked':''}} />
                             </div>
                         </div>
                         <div class="form-group col-lg-12" style="margin-bottom: 1rem;">
