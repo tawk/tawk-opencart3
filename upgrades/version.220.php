@@ -16,8 +16,6 @@ class TawkToUpgradeVersion220 extends TawkToUpgradeBase {
     public static function upgrade($model_setting, $model_store) {
         $store_ids = self::get_store_ids($model_store);
         foreach ($store_ids as $store_id) {
-            $store_id = $store_id;
-
             $store_settings = $model_setting->getSetting('module_tawkto', $store_id);
 
             if (!isset($store_settings['module_tawkto_visibility'])) {
