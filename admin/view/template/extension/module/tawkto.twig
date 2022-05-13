@@ -159,7 +159,7 @@
                                     <textarea class="form-control hide_specific" name="hide_oncustom" id="hide_oncustom" cols="30" rows="10"></textarea>
                                 {% else %}
                                     <textarea class="form-control hide_specific" name="hide_oncustom"
-                                        id="hide_oncustom" cols="30" rows="10">{% for page in hide_whitelist %}{{page}}{% endfor %}</textarea>
+                                        id="hide_oncustom" cols="30" rows="10">{% for page in hide_whitelist %}{{page ~ '\r\n'}}{% endfor %}</textarea>
                                 {% endif %}
                                 <br>
                                 <p class="justify">
@@ -190,7 +190,7 @@
                                     <textarea class="form-control show_specific" name="show_oncustom" id="show_oncustom" cols="30" rows="10"></textarea>
                                 {% else %}
                                     <textarea class="form-control show_specific" name="show_oncustom"
-                                        id="show_oncustom" cols="30" rows="10">{% for page in show_whitelist %}{{page}}{% endfor %}</textarea>
+                                        id="show_oncustom" cols="30" rows="10">{% for page in show_whitelist %}{{page ~ '\r\n'}}{% endfor %}</textarea>
                                 {% endif %}
                                 <br>
                                 <p class="justify">
