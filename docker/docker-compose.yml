@@ -11,6 +11,7 @@ services:
       - ALLOW_EMPTY_PASSWORD=yes
 
   web:
+    container_name: opencart-30
     depends_on:
       - db
     build: .
@@ -20,6 +21,8 @@ services:
     environment:
       - MARIADB_HOST=db
       - MARIADB_PORT_NUMBER=3306
+      - OPENCART_DATABASE_HOST=db
+      - OPENCART_DATABASE_PORT_NUMBER=3306
       - OPENCART_DATABASE_USER=bn_opencart
       - OPENCART_DATABASE_NAME=bitnami_opencart
       - OPENCART_USERNAME=admin
