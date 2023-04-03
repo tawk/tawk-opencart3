@@ -6,6 +6,10 @@
  * @license GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
 
+define('PLUGIN_VERSION', '2.2.0');
+
+require_once dirname(__FILE__) . '/tawkto/upgrades/manager.php';
+
 class ControllerExtensionModuleTawkto extends Controller {
     private $error = array();
 
@@ -28,6 +32,18 @@ class ControllerExtensionModuleTawkto extends Controller {
         $this->setup();
         $this->document->setTitle($this->language->get('heading_title'));
         $this->load->model('setting/module');
+
+        // upgrade manager
+        $dependencies = array(
+            'model_setting' => $this->model_setting_setting,
+            'model_store' => $this->model_setting_store
+        );
+        $options = array(
+            'version' => PLUGIN_VERSION,
+            'version_var_name' => 'module_tawkto_version'
+        );
+        $upgrade_manager = new TawkToUpgradeManager($dependencies, $options);
+        $upgrade_manager->start();
 
         $data = $this->setupIndexTexts();
         $data['module_tawkto_status'] = $this->config->get('module_tawkto_status');
@@ -399,7 +415,10 @@ class ControllerExtensionModuleTawkto extends Controller {
 
     public function install() {
         $this->setup();
-        $this->model_setting_setting->editSetting('module_tawkto', array("module_tawkto_status" => 1));
+        $this->model_setting_setting->editSetting('module_tawkto', array(
+            'module_tawkto_status' => 1,
+            'module_tawkto_version' => PLUGIN_VERSION
+        ));
         $this->enableAllLayouts();
     }
 
