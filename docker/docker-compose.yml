@@ -13,7 +13,7 @@ services:
   web:
     depends_on:
       - db
-    build: ./build
+    build: .
     ports:
       - 8000:8000
       - 8443:8443
@@ -30,7 +30,7 @@ services:
       - APACHE_HTTPS_PORT_NUMBER=8443
     volumes:
       - web_data:/bitnami
-      - ./aliases:/opt/bitnami/apache/conf/aliases
+      - ./assets/multistore.conf:/opt/bitnami/apache/conf/aliases/multistore.conf
 
 volumes:
   db_data:
