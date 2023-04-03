@@ -11,15 +11,18 @@ services:
       - ALLOW_EMPTY_PASSWORD=yes
 
   web:
+    container_name: opencart-30
     depends_on:
       - db
-    build: ./build
+    build: .
     ports:
       - 8000:8000
       - 8443:8443
     environment:
       - MARIADB_HOST=db
       - MARIADB_PORT_NUMBER=3306
+      - OPENCART_DATABASE_HOST=db
+      - OPENCART_DATABASE_PORT_NUMBER=3306
       - OPENCART_DATABASE_USER=bn_opencart
       - OPENCART_DATABASE_NAME=bitnami_opencart
       - OPENCART_USERNAME=admin
@@ -30,7 +33,7 @@ services:
       - APACHE_HTTPS_PORT_NUMBER=8443
     volumes:
       - web_data:/bitnami
-      - ./aliases:/opt/bitnami/apache/conf/aliases
+      - ./assets/multistore.conf:/opt/bitnami/apache/conf/aliases/multistore.conf
 
 volumes:
   db_data:
